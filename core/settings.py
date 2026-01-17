@@ -61,6 +61,9 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": os.environ.get("CLOUDINARY_API_SECRET"),
 }
 
+if not CLOUDINARY_STORAGE["CLOUD_NAME"]:
+    raise Exception("Cloudinary is NOT configured")
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

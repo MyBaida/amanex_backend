@@ -27,7 +27,7 @@ from .serializers import (
 @api_view(['GET'])
 def category_list(request):
     categories = Category.objects.filter(is_active=True)
-    serializer = CategorySerializer(categories, many=True)
+    serializer = CategorySerializer(categories, many=True, context={"request": request})
     return Response(serializer.data)
 
 

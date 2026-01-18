@@ -10,18 +10,9 @@ from .models import (
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-
     class Meta:
         model = Category
-        fields = ["id", "name", "image", "is_active"]
-
-    def get_image(self, obj):
-        if obj.image:
-            request = self.context.get("request")
-            url = obj.image.url
-            return request.build_absolute_uri(obj.image.url) if request else url
-        return None
+        fields = "__all__"
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):

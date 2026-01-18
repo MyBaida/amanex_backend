@@ -1,9 +1,10 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from cloudinary_storage.storage import MediaCloudinaryStorage
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    image = models.ImageField(upload_to='categories/', null=True, blank=True)
+    image = models.ImageField(upload_to='categories/', null=True, blank=True, storage=MediaCloudinaryStorage())
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -26,7 +27,7 @@ class Product(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     size = models.CharField(max_length=50)  # e.g. 250ml
-    image = models.ImageField(upload_to='products/', default='products/default.png', blank=True)
+    image = models.ImageField(upload_to='products/', storage=MediaCloudinaryStorage(), default='products/default.png', blank=True)
     variants = models.ManyToManyField(
         ProductVariant,
         related_name='products',

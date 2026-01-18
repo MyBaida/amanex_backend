@@ -26,8 +26,8 @@ from .serializers import (
 
 @api_view(['GET'])
 def category_list(request):
-    categories = Category.objects.filter(is_active=True)
-    serializer = CategorySerializer(categories, many=True, context={"request": request})
+    categories = Category.objects.all()
+    serializer = CategorySerializer(categories, many=True)
     return Response(serializer.data)
 
 
@@ -97,7 +97,7 @@ def category_delete(request, pk):
 
 @api_view(['GET'])
 def product_list(request):
-    products = Product.objects.filter(is_active=True)
+    products = Product.objects.all()
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
@@ -119,8 +119,7 @@ def product_detail(request, pk):
 @api_view(['GET'])
 def product_list_by_category(request, category_id):
     products = Product.objects.filter(
-        category_id=category_id,
-        is_active=True
+        category_id=category_id
     )
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
@@ -181,8 +180,7 @@ def product_delete(request, pk):
 @api_view(["GET"])
 def best_seller_products(request):
     products = Product.objects.filter(
-        is_best_seller=True,
-        is_active=True
+        is_best_seller=True
     )
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
@@ -261,7 +259,7 @@ def product_variant_delete(request, pk):
 
 @api_view(['GET'])
 def job_list(request):
-    jobs = JobRole.objects.filter(is_open=True)
+    jobs = JobRole.objects.all()
     serializer = JobRoleSerializer(jobs, many=True)
     return Response(serializer.data)
 

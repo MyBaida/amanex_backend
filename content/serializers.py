@@ -5,6 +5,7 @@ from .models import (
     ProductVariant,
     JobRole,
     OurStoryVideo,
+    VariantType,
     OurMissionVideo
 )
 
@@ -15,30 +16,37 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class VariantTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VariantType
+        fields = ["id", "name"]
+
+
+
 class ProductVariantSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="variant_type.name")
+    # variant_type = VariantTypeSerializer(read_only=True)
+    variant_type_id = serializers.PrimaryKeyRelatedField(
+        read_only=True, 
+        source="variant_type"
+    )
+
     class Meta:
         model = ProductVariant
-        fields = '__all__'
+        fields = ["id", "name", "variant_type_id", "image"]
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    # READ
     category = CategorySerializer(read_only=True)
-    variants = ProductVariantSerializer(many=True, read_only=True)
+    variants = ProductVariantSerializer(
+        many=True,
+        read_only=True
+    )
 
-    # WRITE
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(),
         source="category",
         write_only=True
-    )
-
-    variant_ids = serializers.PrimaryKeyRelatedField(
-        queryset=ProductVariant.objects.all(),
-        many=True,
-        source="variants",
-        write_only=True,
-        required=False
     )
 
     class Meta:
@@ -56,7 +64,6 @@ class ProductSerializer(serializers.ModelSerializer):
             "category",
             "category_id",
             "variants",
-            "variant_ids",
         ]
 
 

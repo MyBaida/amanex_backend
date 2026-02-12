@@ -5,23 +5,9 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-from .models import (
-    Category,
-    Product,
-    JobRole,
-    OurStoryVideo,
-    OurMissionVideo, 
-    ProductVariant
-)
+from .models import*
 
-from .serializers import (
-    CategorySerializer,
-    ProductSerializer,
-    JobRoleSerializer,
-    OurStoryVideoSerializer,
-    OurMissionVideoSerializer,
-    ProductVariantSerializer
-)
+from .serializers import*
 
 
 @api_view(['GET'])
@@ -180,8 +166,9 @@ def product_delete(request, pk):
 @api_view(["GET"])
 def best_seller_products(request):
     products = Product.objects.filter(
-        is_best_seller=True
-    )
+        is_best_seller=True,
+        is_active=True
+    ).order_by("-created_at")
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
@@ -193,14 +180,106 @@ def variant_list(request):
     return Response(serializer.data)
 
 
-@api_view(['POST'])
-def product_variant_create(request):
-    serializer = ProductVariantSerializer(data=request.data)
+@api_view(["GET"])
+def variant_type_list(request):
+    variants = VariantType.objects.all()
+    serializer = VariantTypeSerializer(variants, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["POST"])
+def variant_type_create(request):
+    serializer = VariantTypeSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=201)
-
     return Response(serializer.errors, status=400)
+
+
+@api_view(["GET"])
+def variant_type_detail(request, pk):
+    try:
+        variant_type = VariantType.objects.get(pk=pk)
+    except VariantType.DoesNotExist:
+        return Response(
+            {"detail": "Variant not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = VariantTypeSerializer(variant_type)
+    return Response(serializer.data)
+
+
+@api_view(['PUT'])
+def variant_type_update(request, pk):
+    try:
+        variant_type = VariantType.objects.get(pk=pk)
+    except VariantType.DoesNotExist:
+        return Response(
+            {"detail": "Variant type not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = VariantTypeSerializer(
+        variant_type,
+        data=request.data,
+        partial=True  
+    )
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['DELETE'])
+def variant_type_delete(request, pk):
+    try:
+        print("hi")
+        variant_type = VariantType.objects.get(pk=pk)
+    except VariantType.DoesNotExist:
+        return Response(
+            {"detail": "Variant type not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    variant_type.delete()
+    return Response(
+        {"detail": "Variant type deleted successfully"},
+        status=status.HTTP_204_NO_CONTENT
+    )
+
+
+@api_view(["POST"])
+@parser_classes([MultiPartParser, FormParser])
+def product_variant_create(request):
+    """
+    Expected:
+    - product_id
+    - variant_type_id
+    - image (optional)
+    """
+    product_id = request.data.get("product_id")
+    variant_type_id = request.data.get("variant_type_id")
+
+    try:
+        product = Product.objects.get(id=product_id)
+        variant_type = VariantType.objects.get(id=variant_type_id)
+    except (Product.DoesNotExist, VariantType.DoesNotExist):
+        return Response(
+            {"detail": "Invalid product or variant type"},
+            status=400
+        )
+
+    variant, created = ProductVariant.objects.get_or_create(
+        product=product,
+        variant_type=variant_type,
+        defaults={"image": request.FILES.get("image")}
+    )
+
+    serializer = ProductVariantSerializer(variant)
+    return Response(serializer.data, status=201)
 
 
 @api_view(["GET"])
@@ -218,23 +297,31 @@ def product_variant_detail(request, pk):
 
 
 @api_view(['PUT'])
+@parser_classes([MultiPartParser, FormParser])
 def product_variant_update(request, pk):
     try:
         variant = ProductVariant.objects.get(pk=pk)
     except ProductVariant.DoesNotExist:
-        return Response(
-            {"detail": "Variant not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
+        return Response({"detail": "Product Variant not found"}, status=status.HTTP_404_NOT_FOUND)
 
+    # 1. Manually handle the Variant Type change if it's in the request
+    variant_type_id = request.data.get('variant_type_id')
+    if variant_type_id:
+        try:
+            variant_type = VariantType.objects.get(id=variant_type_id)
+            variant.variant_type = variant_type
+        except VariantType.DoesNotExist:
+            return Response({"detail": "Invalid Variant Type ID"}, status=400)
+
+    # 2. Pass the rest to the serializer (like the image)
     serializer = ProductVariantSerializer(
-        variant,
-        data=request.data,
-        partial=True  
+        variant, 
+        data=request.data, 
+        partial=True
     )
 
     if serializer.is_valid():
-        serializer.save()
+        serializer.save() # This saves the image and the manual variant change
         return Response(serializer.data)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -243,6 +330,7 @@ def product_variant_update(request, pk):
 @api_view(['DELETE'])
 def product_variant_delete(request, pk):
     try:
+        print("Project Variant")
         variant = ProductVariant.objects.get(pk=pk)
     except ProductVariant.DoesNotExist:
         return Response(

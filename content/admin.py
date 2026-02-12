@@ -3,6 +3,7 @@ from .models import*
 
 admin.site.register(Category)
 admin.site.register(Product)
+admin.site.register(VariantType)
 admin.site.register(ProductVariant)
 admin.site.register(OurStoryVideo)
 admin.site.register(OurMissionVideo)

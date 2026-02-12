@@ -17,11 +17,17 @@ urlpatterns = [
 
     path('products/best-sellers/', best_seller_products),
 
-    path("variants/", variant_list),
-    path('variants/create/', product_variant_create),
-    path('variants/<int:pk>/', product_variant_detail),
-    path('variants/<int:pk>/update/', product_variant_update),
-    path('variants/<int:pk>/delete/', product_variant_delete),
+    path("variant-types/", variant_type_list),
+    path('variant-types/create/', variant_type_create),
+    path('variant-types/<int:pk>/', variant_type_detail),
+    path('variant-types/<int:pk>/update/', variant_type_update),
+    path('variant-types/<int:pk>/delete/', variant_type_delete),
+
+    path("product-variants/", variant_list),
+    path('product-variants/create/', product_variant_create),
+    path('product-variants/<int:pk>/', product_variant_detail),
+    path('product-variants/<int:pk>/update/', product_variant_update),
+    path('product-variants/<int:pk>/delete/', product_variant_delete),
 
     path('jobs/', job_list),
     path('jobs/<int:pk>/', job_detail),

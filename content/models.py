@@ -11,7 +11,7 @@ class Category(models.Model):
         return self.name
 
 
-class ProductVariant(models.Model):
+class VariantType(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
@@ -28,11 +28,7 @@ class Product(models.Model):
     description = models.TextField()
     size = models.CharField(max_length=50)  # e.g. 250ml
     image = models.ImageField(upload_to='products/', storage=MediaCloudinaryStorage(), default='products/default.png', blank=True)
-    variants = models.ManyToManyField(
-        ProductVariant,
-        related_name='products',
-        blank=True
-    )
+
     product_type = models.CharField( max_length=50, blank=True)
     is_active = models.BooleanField(default=True)
     is_best_seller = models.BooleanField(default=False)
@@ -43,9 +39,42 @@ class Product(models.Model):
         null=True,
         blank=True
     )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
+
+class ProductVariant(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="variants",
+        null=True,
+        blank=True
+    )
+    variant_type = models.ForeignKey(
+        VariantType,
+        related_name='product_variants',
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE
+    )
+    image = models.ImageField(
+        upload_to='product_variants/',
+        storage=MediaCloudinaryStorage(),
+        null=True,
+        blank=True
+    )
+
+    class Meta:
+        unique_together = ('product', 'variant_type')
+
+    def __str__(self):
+        product_name = self.product.name if self.product else "No Product"
+        variant_name = self.variant_type.name if self.variant_type else "No Variant"
+        return f"{product_name} - {variant_name}"
+
 
 
 class OurStoryVideo(models.Model):
